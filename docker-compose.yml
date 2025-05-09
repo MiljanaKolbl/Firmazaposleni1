@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: firma-postgres
+    environment:
+      POSTGRES_DB: firma_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+#  app:
+#    build: .
+#    container_name: firma-app
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - postgres
+#    environment:
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/firma_db
+#      SPRING_DATASOURCE_USERNAME: postgres
+#      SPRING_DATASOURCE_PASSWORD: postgres
+#      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+#      SPRING_LIQUIBASE_ENABLED: true
+#      SPRING_LIQUIBASE_CHANGE_LOG: classpath:db/changelog/changelog-master.xml
+#    networks:
+#      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

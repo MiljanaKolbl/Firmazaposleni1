@@ -1,0 +1,53 @@
+plugins {
+	id 'org.springframework.boot' version '3.2.5'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'java'
+	id 'org.liquibase.gradle' version '2.0.4' // Liquibase plugin
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Spring Boot starteri
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'jakarta.validation:jakarta.validation-api:3.0.0'
+	implementation 'org.hibernate.validator:hibernate-validator:7.0.0.Final'
+	implementation 'org.glassfish:jakarta.el:4.0.0'
+
+	// PostgreSQL JDBC driver
+	implementation 'org.postgresql:postgresql:42.7.3'
+	implementation 'org.liquibase:liquibase-core'
+
+	// Testiranje
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.testcontainers:postgresql:1.19.0'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
+
+	// Jackson for JSON conversion
+	testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// Liquibase runtime zavisnost (potrebna za update zadatak)
+	liquibaseRuntime 'org.liquibase:liquibase-core:4.9.1'
+}
+
+liquibase {
+	activities {
+		main {
+			changeLogFile 'src/main/resources/db/changelog/changelog-master.xml' // Putanja do changelog fajla
+			url 'jdbc:postgresql://localhost:5432/firma_db' // URL baze
+			username 'postgres' // Korisničko ime
+			password 'postgres' // Lozinka
+		}
+	}
+}
+
+test {
+	useJUnitPlatform() // Omogućava korišćenje JUnit 5
+}
