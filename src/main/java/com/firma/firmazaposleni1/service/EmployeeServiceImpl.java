@@ -41,10 +41,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return employeeRepository.save(employee);
     }
-
+    @Transactional(readOnly = true)
     @Override
     public Optional<Employee> getEmployeeById(Long id) {
-        return employeeRepository.findById(id);    //vraca zaposlenog po ID-u kao Optional, da se izbegne null+
+        return employeeRepository.findById(id);
     }
 
     @Override

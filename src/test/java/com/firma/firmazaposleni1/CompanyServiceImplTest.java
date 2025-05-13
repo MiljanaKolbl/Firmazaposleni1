@@ -55,6 +55,16 @@ public class CompanyServiceImplTest {
     }
 
     @Test
+    void testGetCompanyByIdNotFound() {
+        when(companyRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Optional<Company> foundCompany = companyService.getCompanyById(1L);
+
+        assertFalse(foundCompany.isPresent());
+    }
+
+
+    @Test
     void testUpdateCompany() {
         when(companyRepository.findById(1L)).thenReturn(Optional.of(company));
         company.setName("Firma Izmenjena");
@@ -75,4 +85,15 @@ public class CompanyServiceImplTest {
         assertTrue(isDeleted);
         verify(companyRepository, times(1)).deleteById(1L);
     }
+
+    @Test
+    void testDeleteCompanyNotFound() {
+        when(companyRepository.existsById(1L)).thenReturn(false);
+
+        boolean isDeleted = companyService.deleteCompany(1L);
+
+        assertFalse(isDeleted);
+        verify(companyRepository, never()).deleteById(1L);
+    }
+
 }

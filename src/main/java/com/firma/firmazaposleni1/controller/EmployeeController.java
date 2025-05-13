@@ -1,6 +1,7 @@
 package com.firma.firmazaposleni1.controller;
 import com.firma.firmazaposleni1.model.Employee;
 import com.firma.firmazaposleni1.service.EmployeeService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +43,7 @@ public class EmployeeController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
+    @Operation(summary = "Get all employees", description = "Retrieve a list of all employees")
     @GetMapping
     public ResponseEntity<List<Employee>> getAllEmployees() {
         return ResponseEntity.ok(employeeService.getAllEmployees());
