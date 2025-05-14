@@ -6,8 +6,9 @@
                         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd"
         logicalFilePath="changelog-master.xml">
 
-    <include file="1.0.5-create-employee-table.xml" relativeToChangelogFile="true"/>
     <include file="1.0.6-create-company-table.xml" relativeToChangelogFile="true"/>
+    <include file="1.0.5-create-employee-table.xml" relativeToChangelogFile="true"/>
+
 
 
 

@@ -1,6 +1,7 @@
 
 package com.firma.firmazaposleni1;
 
+import com.firma.firmazaposleni1.dto.request.EmployeeRequest;
 import com.firma.firmazaposleni1.model.Company;
 import com.firma.firmazaposleni1.model.Employee;
 import com.firma.firmazaposleni1.repository.CompanyRepository;
@@ -57,21 +58,29 @@ public class Firmazaposleni1ApplicationTests {
         testCompany.setName("Firma Test");
         testCompany.setAddress("Adresa Test");
         testCompany = companyRepository.save(testCompany);
+
+        assertNotNull(testCompany.getId(), "Test company ID should not be null");
     }
 
     @Test
-    public void testCreateEmployee() {
+    public void testCreateEmployee() throws Exception {
         Long companyId = testCompany.getId();
         String name = "Marko Marković";
         String position = "Programer";
 
-        Employee createdEmployee = employeeService.createEmployee(companyId, name, position);
 
-        assertNotNull(createdEmployee.getId()); // sada stvarno mora da ima ID iz baze
-        assertEquals(name, createdEmployee.getName());
-        assertEquals(position, createdEmployee.getPosition());
-        assertEquals(testCompany.getId(), createdEmployee.getCompany().getId());
+        EmployeeRequest employeeRequest = new EmployeeRequest(name, position, companyId);
+
+        mockMvc.perform(post("/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(employeeRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value(name))
+                .andExpect(jsonPath("$.position").value(position))
+                .andExpect(jsonPath("$.companyId").value(companyId))
+                .andExpect(jsonPath("$.id").exists());
     }
+
 
     @Test
     public void testGetEmployees() throws Exception {
@@ -81,9 +90,12 @@ public class Firmazaposleni1ApplicationTests {
         emp1.setCompany(testCompany);
         employeeRepository.save(emp1);
 
+
         mockMvc.perform(get("/employees"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Ana Anić"));
+                .andExpect(jsonPath("$[0].name").value("Ana Anić"))
+                .andExpect(jsonPath("$[0].position").value("Menadžer"))
+                .andExpect(jsonPath("$[0].companyId").value(testCompany.getId()));
     }
 
     @Test
@@ -94,13 +106,17 @@ public class Firmazaposleni1ApplicationTests {
         employee.setCompany(testCompany);
         employee = employeeRepository.save(employee);
 
-        employee.setName("Marko Izmenjen");
+
+        EmployeeRequest updateRequest = new EmployeeRequest("Marko Izmenjen", "Analitičar",testCompany.getId());
+
 
         mockMvc.perform(put("/employees/" + employee.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(employee)))
+                        .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Marko Izmenjen"));
+                .andExpect(jsonPath("$.name").value("Marko Izmenjen"))
+                .andExpect(jsonPath("$.position").value("Analitičar"))
+                .andExpect(jsonPath("$.companyId").value(testCompany.getId()));
     }
 
     @Test
@@ -111,7 +127,46 @@ public class Firmazaposleni1ApplicationTests {
         employee.setCompany(testCompany);
         employee = employeeRepository.save(employee);
 
+
         mockMvc.perform(delete("/employees/" + employee.getId()))
                 .andExpect(status().isNoContent());
+
+
+        assertEquals(0, employeeRepository.count());
     }
+
+    @Test
+    public void testGetEmployeesByCompanyId() throws Exception {
+        Employee emp1 = new Employee();
+        emp1.setName("Ana Anić");
+        emp1.setPosition("Menadžer");
+        emp1.setCompany(testCompany);
+        employeeRepository.save(emp1);
+
+        Employee emp2 = new Employee();
+        emp2.setName("Jovan Jovanović");
+        emp2.setPosition("Programer");
+        emp2.setCompany(testCompany);
+        employeeRepository.save(emp2);
+
+        mockMvc.perform(get("/employees/company/" + testCompany.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Ana Anić"))
+                .andExpect(jsonPath("$[1].name").value("Jovan Jovanović"))
+                .andExpect(jsonPath("$[0].companyId").value(testCompany.getId()))
+                .andExpect(jsonPath("$[1].companyId").value(testCompany.getId()));
+    }
+
+    @Test
+    public void testCreateEmployeeWithoutCompanyId() throws Exception {
+        EmployeeRequest employeeRequest = new EmployeeRequest("Marko Markovic", "Programer", null);
+
+        mockMvc.perform(post("/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(employeeRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+
+
 }

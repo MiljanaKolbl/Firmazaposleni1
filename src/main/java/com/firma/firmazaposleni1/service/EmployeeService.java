@@ -1,5 +1,6 @@
 package com.firma.firmazaposleni1.service;
 
+import com.firma.firmazaposleni1.dto.request.EmployeeRequest;
 import com.firma.firmazaposleni1.model.Employee;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public interface EmployeeService {
 
     Optional<Employee> getEmployeeById(Long id);
 
-    Optional<Employee> updateEmployee(Long id, Employee employee);
+    Optional<Employee> updateEmployee(Long id, EmployeeRequest request);
 
     boolean deleteEmployee(Long id);
 

@@ -1,5 +1,6 @@
 package com.firma.firmazaposleni1;
 
+import com.firma.firmazaposleni1.dto.request.EmployeeRequest;
 import com.firma.firmazaposleni1.model.Company;
 import com.firma.firmazaposleni1.model.Employee;
 import com.firma.firmazaposleni1.repository.CompanyRepository;
@@ -11,16 +12,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.verification.VerificationMode;
-import org.springframework.data.repository.CrudRepository;
 import static org.mockito.Mockito.verify;
-
 import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+
+
+
 
 @ExtendWith(MockitoExtension.class)
 public class EmployeeServiceImplTest {
@@ -87,19 +88,18 @@ public class EmployeeServiceImplTest {
         existingEmployee.setPosition("Programer");
         existingEmployee.setCompany(testCompany);
 
-        // Novi podaci koje korisnik šalje za ažuriranje
-        Employee updatedData = new Employee();
-        updatedData.setName("Marko Izmenjen");
-        updatedData.setPosition("Senior Programer");
+        EmployeeRequest request = new EmployeeRequest("Marko Izmenjen", "Senior Programer", 1L);
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(existingEmployee));
+        when(companyRepository.findById(testCompany.getId())).thenReturn(Optional.of(testCompany));
         when(employeeRepository.save(any(Employee.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Optional<Employee> updatedEmployee = employeeService.updateEmployee(1L, updatedData);
+        Optional<Employee> updatedEmployee = employeeService.updateEmployee(1L, request);
 
         assertTrue(updatedEmployee.isPresent());
         assertEquals("Marko Izmenjen", updatedEmployee.get().getName());
         assertEquals("Senior Programer", updatedEmployee.get().getPosition());
+        assertEquals(testCompany, updatedEmployee.get().getCompany());
     }
 
 

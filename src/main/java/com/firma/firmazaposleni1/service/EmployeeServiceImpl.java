@@ -1,5 +1,6 @@
 package com.firma.firmazaposleni1.service;
 
+import com.firma.firmazaposleni1.dto.request.EmployeeRequest;
 import com.firma.firmazaposleni1.model.Company;
 import com.firma.firmazaposleni1.model.Employee;
 import com.firma.firmazaposleni1.repository.CompanyRepository;
@@ -47,17 +48,20 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.findById(id);
     }
 
-    @Override
-    public Optional<Employee> updateEmployee(Long id, Employee updatedEmployee) {
-        return employeeRepository.findById(id)  //ako postoji zaposleni sa tim ID-em, azurira ga novim vrednostima
-                .map(existing -> {
-                    existing.setName(updatedEmployee.getName());
-                    existing.setPosition(updatedEmployee.getPosition());
-                    existing.setCompany(updatedEmployee.getCompany());
-                    return employeeRepository.save(existing);
-                });
+    public Optional<Employee> updateEmployee(Long id, EmployeeRequest request) {
+        return employeeRepository.findById(id).map(employee -> {
+            employee.setName(request.name());
+            employee.setPosition(request.position());
 
+            Company company = companyRepository.findById(request.companyId())
+                    .orElseThrow(() -> new RuntimeException("Company not found"));
+
+            employee.setCompany(company);
+
+            return employeeRepository.save(employee);
+        });
     }
+
 
     @Override
     public boolean deleteEmployee(Long id) {

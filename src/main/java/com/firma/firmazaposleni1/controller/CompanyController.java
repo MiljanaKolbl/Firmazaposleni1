@@ -1,5 +1,8 @@
 package com.firma.firmazaposleni1.controller;
 
+import com.firma.firmazaposleni1.dto.request.CompanyRequest;
+import com.firma.firmazaposleni1.dto.response.CompanyResponse;
+import com.firma.firmazaposleni1.mapper.CompanyMapper;
 import com.firma.firmazaposleni1.model.Company;
 import com.firma.firmazaposleni1.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,24 +15,30 @@ import java.util.List;
 @RequestMapping("/companies")
 
 public class CompanyController {
+    private final CompanyMapper companyMapper;
     public CompanyService companyService;
 
     @Autowired
-    public CompanyController(CompanyService companyService) {
+    public CompanyController(CompanyService companyService, CompanyMapper companyMapper) {
         this.companyService = companyService;
+        this.companyMapper = companyMapper;
     }
 
 
     @PostMapping
-    public ResponseEntity<Company> createCompany(@RequestBody Company company) {
-        Company saved = companyService.createCompany(company);
-        return ResponseEntity.status(201).body(saved); // 201 Created
+    public ResponseEntity<CompanyResponse> createCompany(@RequestBody CompanyRequest companyRequest) {
+        Company savedCompany = companyService.createCompany(companyMapper.toEntity(companyRequest));
+        return ResponseEntity.status(201)
+                .body(companyMapper.toResponse(savedCompany));
+
+
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Company> updateCompany(@PathVariable Long id, @RequestBody Company updatedCompany) {
-        return companyService.updateCompany(id, updatedCompany)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<CompanyResponse> updateCompany(@PathVariable Long id, @RequestBody CompanyRequest companyRequest) {
+        Company companyToUpdate = companyMapper.toEntity(companyRequest);
+        return companyService.updateCompany(id, companyToUpdate)
+                .map(updateCompany -> ResponseEntity.ok(companyMapper.toResponse(updateCompany)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -41,13 +50,18 @@ public class CompanyController {
 
 
     @GetMapping
-    public ResponseEntity<List<Company>> getAllCompanies() {
-        return ResponseEntity.ok(companyService.getAllCompanies());
+    public ResponseEntity<List<CompanyResponse>> getAllCompanies() {
+        List<Company> companies = companyService.getAllCompanies();
+        List<CompanyResponse> responseList = companies.stream()
+                .map(companyMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(responseList);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Company> getCompanyById(@PathVariable Long id) {
+    public ResponseEntity<CompanyResponse> getCompanyById(@PathVariable Long id) {
         return companyService.getCompanyById(id)
+                .map(companyMapper::toResponse)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
