@@ -8,6 +8,7 @@ import com.firma.firmazaposleni1.repository.CompanyRepository;
 import com.firma.firmazaposleni1.repository.EmployeeRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firma.firmazaposleni1.service.EmployeeService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Testcontainers
 public class Firmazaposleni1ApplicationTests {
 
     @Autowired
@@ -47,6 +54,26 @@ public class Firmazaposleni1ApplicationTests {
     private EmployeeRepository employeeRepository;
 
     private Company testCompany;
+
+    @Container
+    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
+            .withDatabaseName("testdb")
+            .withUsername("testuser")
+            .withPassword("testpass");
+
+    @DynamicPropertySource
+    static void overrideProps(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgresContainer::getUsername);
+        registry.add("spring.datasource.password", postgresContainer::getPassword);
+    }
+
+
+    @BeforeAll
+    static void setup() {
+        postgresContainer.start();
+        System.out.println("PostgreSQL container started at: " + postgresContainer.getJdbcUrl());
+    }
 
 
     @BeforeEach
